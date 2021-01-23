@@ -23,5 +23,7 @@ export const DarkTheme = {
   colors: {
     ...PaperDarkTheme.colors,
     ...NavigationDarkTheme.colors,
+    card: "#222222",
+    background: "#222222",
   },
 };
