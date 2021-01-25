@@ -1,21 +1,38 @@
-interface IPostImage {
-  width: number;
-  height: number;
-  url: string;
-  webpUrl: string;
-}
-
 interface IPostImages {
-  image700: IPostImage;
-  image460: IPostImage;
-  imageFbThumbnail: IPostImage;
-  image460sv: IPostImage;
+  image700: {
+    width: number;
+    height: number;
+    url: string;
+  };
+  image460: {
+    width: number;
+    height: number;
+    url: string;
+    webpUrl: string;
+  };
+  imageFbThumbnail: {
+    width: number;
+    height: number;
+    url: string;
+  };
+  image460sv: {
+    av1Url: string;
+    duration: number;
+    h265Url: string;
+    hasAudio: 0 | 1;
+    height: number;
+    url: string;
+    vp8Url: string;
+    width: number;
+  };
 }
 
 interface IPostTag {
   key: string;
   url: string;
 }
+
+type TPostType = "Animated" | "Photo";
 
 interface IPostSection {
   name: string;
@@ -35,4 +52,8 @@ interface IPost {
   postSection: IPostSection;
   images: IPostImages;
   creationTs: number;
+  type: TPostType;
+  hasLongPostCover: 0 | 1;
+  isVoteMasked: 0 | 1;
+  nsfw: 0 | 1;
 }

@@ -1,26 +1,37 @@
 import React, { useCallback, useMemo } from "react";
 
-import { FlatList, StyleSheet, ListRenderItemInfo } from "react-native";
+import {
+  FlatList,
+  StatusBar,
+  StyleSheet,
+  ListRenderItemInfo,
+} from "react-native";
 
 import flatMap from "lodash/flatMap";
 import uniqBy from "lodash/uniqBy";
 
 import { useInfiniteQuery } from "react-query";
+import { useRoute, RouteProp, useFocusEffect } from "@react-navigation/native";
 import { ActivityIndicator, Chip } from "react-native-paper";
 
+import { HomeStackParamList } from "../../context/Navigation";
 import PostCard from "../../components/PostCard";
 
 import { api } from "../../lib/api";
 
 const HomePage = () => {
+  const { params } = useRoute<RouteProp<HomeStackParamList, "Home">>();
+
   const {
     data: queryData,
     hasNextPage,
+    isFetching,
     isFetchingNextPage,
     fetchNextPage,
+    refetch,
   } = useInfiniteQuery(
-    "posts",
-    ({ pageParam: cursor }) =>
+    ["posts", params],
+    ({ pageParam: cursor, queryKey: [, { group, type }] }) =>
       api
         .get<
           APIResponse<{
@@ -29,11 +40,18 @@ const HomePage = () => {
             nextCursor: string;
             featuredAds: any[];
           }>
-        >(`/group-posts/group/default/type/hot?${cursor}`)
+        >(`/group-posts/group/${group}/type/${type}?${cursor}`)
         .then(({ data }) => data.data),
     {
       getNextPageParam: (lastPage) => lastPage?.nextCursor,
     },
+  );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
   );
 
   const tags = queryData?.pages?.[0]?.tags ?? [];
@@ -46,8 +64,6 @@ const HomePage = () => {
       ),
     [queryData],
   );
-
-  console.log(tags);
 
   const renderItem = useCallback(
     ({ item: post }: ListRenderItemInfo<IPost>) => {
@@ -83,7 +99,10 @@ const HomePage = () => {
             }}
             textStyle={{
               color: "#fff",
-              fontWeight: "bold",
+              fontWeight: "700",
+              fontSize: 14,
+              marginVertical: 2,
+              marginHorizontal: 0,
             }}
             onPress={() => console.log("OK")}
           >
@@ -117,7 +136,10 @@ const HomePage = () => {
 
   return (
     <>
+      <StatusBar backgroundColor="#222222" />
       <FlatList
+        refreshing={isFetching}
+        onRefresh={refetch}
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
         data={data}
@@ -127,6 +149,10 @@ const HomePage = () => {
         onEndReachedThreshold={10}
         ListHeaderComponent={renderListHeader}
         ListFooterComponent={renderListFooter}
+        initialNumToRender={4}
+        viewabilityConfig={{
+          viewAreaCoveragePercentThreshold: 50,
+        }}
       />
     </>
   );

@@ -2,6 +2,8 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { CompositeNavigationProp } from "@react-navigation/native";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 
+import { TPostGroup, TPostType } from "../config/const";
+
 export type RootStackParamList = {
   Home: undefined;
 };
@@ -11,7 +13,7 @@ export type HomeDrawerParamList = {
 };
 
 export type HomeStackParamList = {
-  Home: undefined;
+  Home: { group: TPostGroup; type: TPostType };
 };
 
 // export type HomeScreenNavigationProp = StackNavigationProp<

@@ -18,6 +18,8 @@
     "@react-navigation/native": "^5.9.2",
     "@react-navigation/stack": "^5.14.1",
     "axios": "^0.21.1",
+    "dayjs": "^1.10.4",
+    "expo-av": "^9.0.0",
     "expo-file-system": "^10.0.0",
     "lodash": "^4.17.20",
     "react": "16.13.1",
