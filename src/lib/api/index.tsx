@@ -72,29 +72,31 @@ const onResponseRejected = (error: AxiosError) => {
   return Promise.reject(error);
 };
 
-const v1 = axios.create({
+const apiV1 = axios.create({
   baseURL: "https://9gag.com/v1",
 });
 
-v1.interceptors.response.use(onResponseFulfilled, onResponseRejected);
+apiV1.interceptors.response.use(onResponseFulfilled, onResponseRejected);
 
 const DEVICE_UUID = "1623869681328-f79f46b7-5306-4e87-92e6-7d857545c356";
 
-const v2 = axios.create({
+const apiV2 = axios.create({
   baseURL: "https://api.9gag.com/v2",
   headers: {
-    // "X-Package-Version": 61050300,
     "X-Package-ID": "com.ninegag.android.app",
     "X-Device-UUID": `v1-${DEVICE_UUID}`,
+    "9GAG-9GAG-TOKEN": "Y29tLm5pbmVnYWcuYW5kcm9pZC5hcHAqMjJlMjExMzkz",
     "9GAG-APP_ID": "com.ninegag.android.app",
     "9GAG-DEVICE_TYPE": Platform.OS,
     "9GAG-DEVICE_UUID": `v1-${DEVICE_UUID}`,
   },
 });
 
-v2.interceptors.request.use(async (config) => {
+apiV2.interceptors.request.use(async (config) => {
   /**
    * https://www.reddit.com/r/9gag/comments/66l1a3/digging_into_actual_9gag_api/
+   *
+   * https://github.com/and3rson/nineapi/blob/master/nineapi/client.py
    *
    * A man, a legend has decoded the request signature
    * sha1 algorithm!
@@ -127,9 +129,33 @@ v2.interceptors.request.use(async (config) => {
   return Promise.resolve(config);
 });
 
-v2.interceptors.response.use(onResponseFulfilled, onResponseRejected);
+apiV2.interceptors.response.use(onResponseFulfilled, onResponseRejected);
 
-export default {
-  v1,
-  v2,
+export const api = {
+  v1: apiV1,
+  v2: apiV2,
+};
+
+const commentV2 = axios.create({
+  baseURL: "https://comment-cdn.9gag.com/v2",
+  headers: {
+    "X-Package-ID": "com.ninegag.android.app",
+    "X-Device-UUID": `v1-${DEVICE_UUID}`,
+  },
+});
+
+commentV2.interceptors.request.use(async (config) => {
+  config.params = {
+    appId: "a_dd8f2b7d304a10edaf6f29517ea0ca4100a43d1b",
+    ...config.params,
+  };
+
+  console.log(config);
+  return Promise.resolve(config);
+});
+
+commentV2.interceptors.response.use(onResponseFulfilled, onResponseRejected);
+
+export const comment = {
+  v2: commentV2,
 };

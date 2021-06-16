@@ -7,7 +7,7 @@ import {
   QueryClientProvider as ReactQueryClientProvider,
 } from "react-query";
 
-import api from "../lib/api";
+import { api } from "../lib/api";
 
 const client = new QueryClient({
   defaultOptions: {

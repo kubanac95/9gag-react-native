@@ -5,19 +5,17 @@ import {
   Image,
   Pressable,
   StyleSheet,
-  Dimensions,
   LayoutChangeEvent,
 } from "react-native";
 
 import dayjs from "dayjs";
 
 import { Text, TouchableRipple, IconButton } from "react-native-paper";
-import { useTheme } from "@react-navigation/native";
+import { useNavigation, useTheme } from "@react-navigation/native";
 
-import FastImage, { FastImageProps } from "react-native-fast-image";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-import PostMediaVideo from "./VideoPlayer";
+import PostMedia from "./PostMedia";
 
 interface PostCardProps {
   post: IPost;
@@ -27,8 +25,6 @@ interface PostCardProps {
 
 export interface PostCardRef {}
 
-const { width } = Dimensions.get("window");
-
 function formatVotes(value: number) {
   return Math.abs(value) > 999
     ? // @ts-ignore
@@ -36,42 +32,10 @@ function formatVotes(value: number) {
     : Math.sign(value) * Math.abs(value);
 }
 
-function getMediaDimensions(media: { width: number; height: number }) {
-  const upscale = width > media.width;
-
-  if (upscale) {
-    const aspectRatio = width / media.width;
-
-    return {
-      width,
-      height: media.height * aspectRatio,
-    };
-  }
-
-  return {
-    width: media.width,
-    height: media.height,
-  };
-}
-
-const PostMediaImage = ({
-  style,
-  source,
-}: {
-  style?: FastImageProps["style"];
-  source: { width: number; height: number; url: string };
-}) => {
-  return (
-    <FastImage
-      source={{ uri: source?.url }}
-      style={[getMediaDimensions(source), style]}
-      resizeMode="contain"
-    />
-  );
-};
-
 const PostCard = React.forwardRef<unknown, PostCardProps>((props) => {
   const { colors } = useTheme();
+
+  const navigation = useNavigation();
 
   const { post, onLayoutMedia } = props;
 
@@ -107,12 +71,9 @@ const PostCard = React.forwardRef<unknown, PostCardProps>((props) => {
         </View>
       </View>
       <Text style={styles.title}>{title}</Text>
-      {post.type === "Photo" && (
-        <PostMediaImage source={post?.images?.image460} />
-      )}
-      {post.type === "Animated" && (
-        <PostMediaVideo post={post} autoPlay={props.autoPlay} />
-      )}
+
+      <PostMedia post={post} />
+
       <View style={styles.footer}>
         <TouchableRipple style={styles.footerButton} onPress={() => null}>
           <View style={styles.footerButtonInner}>
@@ -130,7 +91,10 @@ const PostCard = React.forwardRef<unknown, PostCardProps>((props) => {
             </Text>
           </View>
         </TouchableRipple>
-        <TouchableRipple style={styles.footerButton} onPress={() => null}>
+        <TouchableRipple
+          style={styles.footerButton}
+          onPress={() => navigation.navigate("Post", { url: post.url })}
+        >
           <View style={styles.footerButtonInner}>
             <Icon
               name="comment"

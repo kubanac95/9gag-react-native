@@ -2,7 +2,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { CompositeNavigationProp } from "@react-navigation/native";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 
-import { TPostGroup, TPostType } from "../config/const";
+import { TPostType } from "../config/const";
 
 export type RootStackParamList = {
   Home: undefined;
@@ -14,7 +14,7 @@ export type HomeDrawerParamList = {
 
 export type HomeStackParamList = {
   Home: {
-    group: TPostGroup;
+    group: number;
     type: TPostType;
   };
 };

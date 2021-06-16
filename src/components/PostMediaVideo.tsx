@@ -6,31 +6,33 @@ import {
   Text,
   Pressable,
   StyleSheet,
-  Dimensions,
   Animated,
-  LayoutChangeEvent,
   TouchableWithoutFeedback,
   GestureResponderEvent,
 } from "react-native";
 
 import Slider from "@react-native-community/slider";
 
-import { AVPlaybackStatus, Video } from "expo-av";
-import { useIsFocused } from "@react-navigation/native";
+import { AVPlaybackStatus, Video, VideoProps } from "expo-av";
 
-import FastImage from "react-native-fast-image";
+import FastImage, { FastImageProps } from "react-native-fast-image";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 import useSetState from "react-use/lib/useSetState";
+import getMediaDimensions from "../lib/common/getMediaDimensions";
 
-const autoPlayGIF = true;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const autoPlayVideo = true;
 const isMutedDefault = false;
 
 interface PostCardProps {
-  post: IPost;
+  width: number;
+  height: number;
+
+  source: VideoProps["source"];
+  thumbnailSource?: FastImageProps["source"];
+
   autoPlay?: boolean;
-  onLayoutMedia?: (event: LayoutChangeEvent) => void;
 }
 
 type ControlState = "Show" | "Hidden";
@@ -43,36 +45,8 @@ type PlaybackState =
   | "Buffering"
   | "Error";
 
-const { width } = Dimensions.get("window");
-
-function getMediaDimensions(media: { width: number; height: number }) {
-  const upscale = width > media.width;
-
-  if (upscale) {
-    const aspectRatio = width / media.width;
-
-    return {
-      width,
-      height: media.height * aspectRatio,
-    };
-  }
-
-  return {
-    width: media.width,
-    height: media.height,
-  };
-}
-
 const PostMediaVideo = React.forwardRef<never, PostCardProps>(
-  ({ post, autoPlay }) => {
-    const {
-      images: { image460, image460sv },
-    } = post;
-
-    const isGIF = !image460sv.hasAudio;
-
-    const isFocused = useIsFocused();
-
+  ({ source, thumbnailSource, width, height, autoPlay }) => {
     const [isMuted, setIsMuted] = useState(isMutedDefault);
 
     const [sliderWidth, setSliderWidth] = useState(0);
@@ -182,10 +156,10 @@ const PostMediaVideo = React.forwardRef<never, PostCardProps>(
           {state.initialize && (
             <Video
               ref={videoRef}
-              source={{ uri: image460sv?.url }}
-              style={getMediaDimensions(image460sv)}
+              source={source}
+              style={getMediaDimensions({ width, height })}
               resizeMode="contain"
-              shouldPlay={autoPlay && isFocused}
+              shouldPlay
               isLooping
               useNativeControls={false}
               isMuted={isMuted}
@@ -199,10 +173,10 @@ const PostMediaVideo = React.forwardRef<never, PostCardProps>(
             />
           )}
 
-          {!state.initialize && (
+          {!!(thumbnailSource && !state.initialize) && (
             <FastImage
-              source={{ uri: image460?.url }}
-              style={getMediaDimensions(image460)}
+              source={thumbnailSource}
+              style={getMediaDimensions({ width, height })}
               resizeMode="contain"
             />
           )}
@@ -211,11 +185,7 @@ const PostMediaVideo = React.forwardRef<never, PostCardProps>(
           {!state.initialize && (
             <View style={styles.absoluteCenter} pointerEvents="none">
               <View style={styles.overlayIcon}>
-                <Icon
-                  name={image460sv.hasAudio ? "play" : "gif"}
-                  size={30}
-                  color="#fff"
-                />
+                <Icon name="play" size={30} color="#fff" />
               </View>
             </View>
           )}
@@ -241,77 +211,67 @@ const PostMediaVideo = React.forwardRef<never, PostCardProps>(
                   if (controlsState === "Show" && playbackState !== "Playing") {
                     setControlsState("Hidden");
                   }
-                  console.log(playbackState, playbackState !== "Playing");
+
                   return videoRef?.current?.setStatusAsync({
                     shouldPlay: playbackState !== "Playing",
                   });
                 }}
               >
-                <Icon
-                  name={image460sv.hasAudio ? "play" : "gif"}
-                  size={30}
-                  color="#fff"
-                />
+                <Icon name="play" size={30} color="#fff" />
               </Pressable>
             </Animated.View>
           )}
 
-          {!isGIF && (
-            <>
-              <Animated.View
-                style={[
-                  {
-                    position: "absolute",
-                    bottom: 0,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingBottom: 10,
-                    paddingHorizontal: 20,
-                    justifyContent: "space-between",
-                    opacity: opacityValue.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, 1],
-                    }),
-                  },
-                ]}
-              >
-                <Text
-                  style={{ color: "#fff", fontSize: 10, fontWeight: "bold" }}
-                >
-                  00:00
-                </Text>
-                <TouchableWithoutFeedback
-                  onLayout={(e) => setSliderWidth(e.nativeEvent.layout.width)}
-                  onPress={onSeekBarTap}
-                >
-                  <Slider
-                    style={{ flex: 1, marginRight: 10, marginLeft: 10 }}
-                    thumbTintColor="#fff"
-                    minimumTrackTintColor="#fff"
-                    maximumTrackTintColor="#fff"
-                    value={0}
-                    onValueChange={onSeekSliderValueChange}
-                    onSlidingComplete={onSeekSliderSlidingComplete}
-                    disabled={
-                      playbackState === "Loading" ||
-                      playbackState === "Error" ||
-                      controlsState !== "Show"
-                    }
-                  />
-                </TouchableWithoutFeedback>
-                <Pressable
-                  hitSlop={{ top: 20, left: 20, bottom: 20, right: 20 }}
-                  onPress={() => setIsMuted(!isMuted)}
-                >
-                  <Icon
-                    name={isMuted ? "volume-off" : "volume-high"}
-                    color="#fff"
-                    size={18}
-                  />
-                </Pressable>
-              </Animated.View>
-            </>
-          )}
+          <Animated.View
+            style={[
+              {
+                position: "absolute",
+                bottom: 0,
+                flexDirection: "row",
+                alignItems: "center",
+                paddingBottom: 10,
+                paddingHorizontal: 20,
+                justifyContent: "space-between",
+                opacity: opacityValue.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 1],
+                }),
+              },
+            ]}
+          >
+            <Text style={{ color: "#fff", fontSize: 10, fontWeight: "bold" }}>
+              00:00
+            </Text>
+            <TouchableWithoutFeedback
+              onLayout={(e) => setSliderWidth(e.nativeEvent.layout.width)}
+              onPress={onSeekBarTap}
+            >
+              <Slider
+                style={{ flex: 1, marginRight: 10, marginLeft: 10 }}
+                thumbTintColor="#fff"
+                minimumTrackTintColor="#fff"
+                maximumTrackTintColor="#fff"
+                value={0}
+                onValueChange={onSeekSliderValueChange}
+                onSlidingComplete={onSeekSliderSlidingComplete}
+                disabled={
+                  playbackState === "Loading" ||
+                  playbackState === "Error" ||
+                  controlsState !== "Show"
+                }
+              />
+            </TouchableWithoutFeedback>
+            <Pressable
+              hitSlop={{ top: 20, left: 20, bottom: 20, right: 20 }}
+              onPress={() => setIsMuted(!isMuted)}
+            >
+              <Icon
+                name={isMuted ? "volume-off" : "volume-high"}
+                color="#fff"
+                size={18}
+              />
+            </Pressable>
+          </Animated.View>
         </View>
       </TouchableWithoutFeedback>
     );
