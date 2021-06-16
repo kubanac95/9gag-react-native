@@ -1,18 +1,31 @@
-import React, { useState } from "react";
+import React from "react";
+
+import {
+  View,
+  Image,
+  Pressable,
+  StyleSheet,
+  Dimensions,
+  LayoutChangeEvent,
+} from "react-native";
 
 import dayjs from "dayjs";
 
-import { View, Image, Pressable, StyleSheet, Dimensions } from "react-native";
-
-import { Video } from "expo-av";
 import { Text, TouchableRipple, IconButton } from "react-native-paper";
 import { useTheme } from "@react-navigation/native";
 
+import FastImage, { FastImageProps } from "react-native-fast-image";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-interface Props {
+import PostMediaVideo from "./VideoPlayer";
+
+interface PostCardProps {
   post: IPost;
+  autoPlay?: boolean;
+  onLayoutMedia?: (event: LayoutChangeEvent) => void;
 }
+
+export interface PostCardRef {}
 
 const { width } = Dimensions.get("window");
 
@@ -41,107 +54,40 @@ function getMediaDimensions(media: { width: number; height: number }) {
   };
 }
 
-const PostMediaImage = ({ post }: Props) => {
-  const {
-    images: { image460 },
-  } = post;
-
+const PostMediaImage = ({
+  style,
+  source,
+}: {
+  style?: FastImageProps["style"];
+  source: { width: number; height: number; url: string };
+}) => {
   return (
-    <Image
-      source={{ uri: image460?.url }}
-      style={getMediaDimensions(image460)}
-      resizeMethod="scale"
+    <FastImage
+      source={{ uri: source?.url }}
+      style={[getMediaDimensions(source), style]}
       resizeMode="contain"
     />
   );
 };
 
-const PostMediaVideo = ({ post }: Props) => {
-  const {
-    images: { image460sv },
-  } = post;
-
-  const [autoPlay, setAutoPlay] = useState(false);
-
-  if (!autoPlay) {
-    return (
-      <Pressable onPress={() => setAutoPlay(true)}>
-        <Image
-          source={{ uri: image460sv?.url }}
-          style={getMediaDimensions(image460sv)}
-          resizeMethod="scale"
-          resizeMode="contain"
-        />
-        <View
-          style={[
-            StyleSheet.absoluteFillObject,
-            { alignItems: "center", justifyContent: "center" },
-          ]}
-        >
-          <View
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: 40,
-              backgroundColor: "rgba(0,0,0,0.75)",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Icon
-              name={image460sv.hasAudio ? "play" : "gif"}
-              size={30}
-              color="#fff"
-            />
-          </View>
-        </View>
-      </Pressable>
-    );
-  }
-
-  return (
-    <Video
-      source={{ uri: image460sv?.url }}
-      style={getMediaDimensions(image460sv)}
-      resizeMode="contain"
-      shouldPlay
-      isLooping
-    />
-  );
-};
-
-const PostMedia = ({ post }: Props) => {
-  const { type } = post;
-
-  if (type === "Photo") {
-    return <PostMediaImage post={post} />;
-  }
-
-  if (post.type === "Animated") {
-    return <PostMediaVideo post={post} />;
-  }
-
-  return null;
-};
-
-const PostCard = (props: Props) => {
+const PostCard = React.forwardRef<unknown, PostCardProps>((props) => {
   const { colors } = useTheme();
 
+  const { post, onLayoutMedia } = props;
+
   const {
-    post,
-    post: {
-      upVoteCount,
-      downVoteCount,
-      commentsCount,
-      title,
-      creationTs,
-      postSection,
-    },
-  } = props;
+    upVoteCount,
+    downVoteCount,
+    commentsCount,
+    title,
+    creationTs,
+    postSection,
+  } = post;
 
   return (
     <Pressable
       style={[styles.container, { backgroundColor: colors.background }]}
+      onLayout={onLayoutMedia}
     >
       <View style={styles.header}>
         <View style={styles.headerSection}>
@@ -161,7 +107,12 @@ const PostCard = (props: Props) => {
         </View>
       </View>
       <Text style={styles.title}>{title}</Text>
-      <PostMedia post={post} />
+      {post.type === "Photo" && (
+        <PostMediaImage source={post?.images?.image460} />
+      )}
+      {post.type === "Animated" && (
+        <PostMediaVideo post={post} autoPlay={props.autoPlay} />
+      )}
       <View style={styles.footer}>
         <TouchableRipple style={styles.footerButton} onPress={() => null}>
           <View style={styles.footerButtonInner}>
@@ -202,7 +153,7 @@ const PostCard = (props: Props) => {
       </View>
     </Pressable>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -264,6 +215,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  absoluteCenter: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  overlayIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(0,0,0,0.75)",
     alignItems: "center",
     justifyContent: "center",
   },

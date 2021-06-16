@@ -5,6 +5,7 @@ import {
   StatusBar,
   StyleSheet,
   ListRenderItemInfo,
+  ViewToken,
 } from "react-native";
 
 import flatMap from "lodash/flatMap";
@@ -17,22 +18,18 @@ import { ActivityIndicator, Chip } from "react-native-paper";
 import { HomeStackParamList } from "../../context/Navigation";
 import PostCard from "../../components/PostCard";
 
-import { api } from "../../lib/api";
+import api from "../../lib/api";
+import { useState } from "react";
 
 const HomePage = () => {
   const { params } = useRoute<RouteProp<HomeStackParamList, "Home">>();
 
-  const {
-    data: queryData,
-    hasNextPage,
-    isFetching,
-    isFetchingNextPage,
-    fetchNextPage,
-    refetch,
-  } = useInfiniteQuery(
-    ["posts", params],
+  const [visibleIndex, setVisibleIndex] = useState<number | null>(null);
+
+  const queryResult = useInfiniteQuery(
+    ["posts", params] as const,
     ({ pageParam: cursor, queryKey: [, { group, type }] }) =>
-      api
+      api.v1
         .get<
           APIResponse<{
             posts: IPost[];
@@ -46,6 +43,15 @@ const HomePage = () => {
       getNextPageParam: (lastPage) => lastPage?.nextCursor,
     },
   );
+
+  const {
+    data: queryData,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    fetchNextPage,
+    refetch,
+  } = queryResult;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -66,10 +72,10 @@ const HomePage = () => {
   );
 
   const renderItem = useCallback(
-    ({ item: post }: ListRenderItemInfo<IPost>) => {
-      return <PostCard post={post} />;
+    ({ item: post, index }: ListRenderItemInfo<IPost>) => {
+      return <PostCard post={post} autoPlay={index === visibleIndex} />;
     },
-    [],
+    [visibleIndex],
   );
 
   const renderListHeader = useCallback(() => {
@@ -134,10 +140,25 @@ const HomePage = () => {
     fetchNextPage();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+  const onViewableItemsChanged = useCallback(
+    ({
+      viewableItems,
+    }: {
+      viewableItems: ViewToken[];
+      changed: ViewToken[];
+    }) => {
+      if (viewableItems && viewableItems.length > 0) {
+        setVisibleIndex(viewableItems[0].index);
+      }
+    },
+    [],
+  );
+
   return (
     <>
       <StatusBar backgroundColor="#222222" />
       <FlatList
+        scrollEventThrottle={16}
         refreshing={isFetching}
         onRefresh={refetch}
         style={styles.container}
@@ -147,6 +168,7 @@ const HomePage = () => {
         renderItem={renderItem}
         onEndReached={onEndReached}
         onEndReachedThreshold={10}
+        // onViewableItemsChanged={onViewableItemsChanged}
         ListHeaderComponent={renderListHeader}
         ListFooterComponent={renderListFooter}
         initialNumToRender={4}

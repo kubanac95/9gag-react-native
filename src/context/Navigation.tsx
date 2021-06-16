@@ -13,7 +13,10 @@ export type HomeDrawerParamList = {
 };
 
 export type HomeStackParamList = {
-  Home: { group: TPostGroup; type: TPostType };
+  Home: {
+    group: TPostGroup;
+    type: TPostType;
+  };
 };
 
 // export type HomeScreenNavigationProp = StackNavigationProp<

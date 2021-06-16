@@ -41,6 +41,22 @@ interface IPostSection {
   webpUrl: string;
 }
 
+interface IArticleBlock {
+  type: "RichText";
+  content: string;
+}
+
+interface IArticle {
+  blocks: IArticleBlock[];
+  medias: unknown[];
+}
+
+interface IBoard {
+  followed: boolean;
+  location: string;
+  memberCount: number;
+}
+
 interface IPost {
   id: string;
   url: string;

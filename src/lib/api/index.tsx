@@ -1,7 +1,135 @@
-import axios from "axios";
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import dayjs from "dayjs";
+import { Platform } from "react-native";
 
-const api = axios.create({
+import * as Crypto from "expo-crypto";
+
+const logRequest = ({
+  config,
+  response,
+}: {
+  config: AxiosRequestConfig;
+  response: any;
+}) => {
+  // Request
+  console.groupCollapsed("request");
+  console.log(
+    "data: ",
+    typeof config?.data === "string" ? JSON.parse(config?.data) : config?.data,
+  );
+  console.log("data json: ", config?.data);
+  console.log("params: ", config?.params);
+  console.groupEnd();
+
+  // Response
+  console.groupCollapsed("response");
+  console.log("data: ", response?.data);
+  console.log("status: ", response?.status);
+  console.groupEnd();
+};
+
+const logResponse = (response: AxiosResponse) => {
+  if (!__DEV__) {
+    return;
+  }
+
+  console.groupCollapsed(
+    `%c[API - ${response?.config?.method}] response: ${response?.config?.url}`,
+    `color: #6ECDA5`,
+  );
+
+  logRequest({ config: response?.config, response });
+
+  console.groupEnd();
+};
+
+const logError = (error: AxiosError) => {
+  if (!__DEV__) {
+    return;
+  }
+
+  console.groupCollapsed(
+    `%c[API - ${error.config.method}] error: ${error.config.url}`,
+    `color: #EE3024`,
+  );
+
+  logRequest({ config: error.config, response: error.response });
+
+  console.log("response status: ", error.response?.status);
+
+  console.groupEnd();
+};
+
+const onResponseFulfilled = (response: AxiosResponse) => {
+  logResponse(response);
+
+  return response;
+};
+
+const onResponseRejected = (error: AxiosError) => {
+  logError(error);
+
+  return Promise.reject(error);
+};
+
+const v1 = axios.create({
   baseURL: "https://9gag.com/v1",
 });
 
-export { api };
+v1.interceptors.response.use(onResponseFulfilled, onResponseRejected);
+
+const DEVICE_UUID = "1623869681328-f79f46b7-5306-4e87-92e6-7d857545c356";
+
+const v2 = axios.create({
+  baseURL: "https://api.9gag.com/v2",
+  headers: {
+    // "X-Package-Version": 61050300,
+    "X-Package-ID": "com.ninegag.android.app",
+    "X-Device-UUID": `v1-${DEVICE_UUID}`,
+    "9GAG-APP_ID": "com.ninegag.android.app",
+    "9GAG-DEVICE_TYPE": Platform.OS,
+    "9GAG-DEVICE_UUID": `v1-${DEVICE_UUID}`,
+  },
+});
+
+v2.interceptors.request.use(async (config) => {
+  /**
+   * https://www.reddit.com/r/9gag/comments/66l1a3/digging_into_actual_9gag_api/
+   *
+   * A man, a legend has decoded the request signature
+   * sha1 algorithm!
+   *
+   * Kudos to him!
+   *
+   */
+
+  const timestamp = dayjs().valueOf();
+
+  config.headers["9GAG-TIMESTAMP"] = timestamp;
+
+  const signature = [
+    "*",
+    config.headers["9GAG-TIMESTAMP"],
+    "_._",
+    config.headers["9GAG-APP_ID"],
+    "._.",
+    config.headers["9GAG-DEVICE_UUID"],
+    "9GAG",
+  ].join("");
+
+  const requestSignature = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA1,
+    signature,
+  );
+
+  config.headers["9GAG-REQUEST-SIGNATURE"] = requestSignature;
+
+  return Promise.resolve(config);
+});
+
+v2.interceptors.response.use(onResponseFulfilled, onResponseRejected);
+
+export default {
+  v1,
+  v2,
+};
