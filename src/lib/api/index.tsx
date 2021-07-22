@@ -83,9 +83,11 @@ const DEVICE_UUID = "1623869681328-f79f46b7-5306-4e87-92e6-7d857545c356";
 const apiV2 = axios.create({
   baseURL: "https://api.9gag.com/v2",
   headers: {
+    "User-Agent": "9GAG/61070300 (samsung SM-G973N;Android 5.1.1)",
+    Host: "api.9gag.com",
+
     "X-Package-ID": "com.ninegag.android.app",
     "X-Device-UUID": `v1-${DEVICE_UUID}`,
-    "9GAG-9GAG-TOKEN": "Y29tLm5pbmVnYWcuYW5kcm9pZC5hcHAqMjJlMjExMzkz",
     "9GAG-APP_ID": "com.ninegag.android.app",
     "9GAG-DEVICE_TYPE": Platform.OS,
     "9GAG-DEVICE_UUID": `v1-${DEVICE_UUID}`,

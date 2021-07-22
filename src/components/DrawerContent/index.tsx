@@ -11,6 +11,7 @@ import {
 
 import { useNavigation } from "@react-navigation/native";
 import { useQuery, useQueryClient } from "react-query";
+import { useCallback } from "react";
 
 function DrawerContent(props: DrawerContentComponentProps) {
   const navigation = useNavigation<DrawerNavigationProp>();
@@ -27,38 +28,48 @@ function DrawerContent(props: DrawerContentComponentProps) {
     },
   });
 
+  const onPress = useCallback(
+    (group: Pick<IGroup, "id" | "name">) => {
+      const { id, name } = group;
+
+      navigation.navigate("Home", {
+        state: {
+          routes: [
+            {
+              name: "Home",
+              params: {
+                title: name,
+              },
+              state: {
+                routes: [
+                  {
+                    name: "Home",
+                    params: {
+                      group: `${id}`,
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      });
+    },
+    [navigation],
+  );
+
   return (
     <DrawerContentScrollView {...props}>
-      {data?.data.groups.map(({ id, name }) => {
+      <DrawerItem
+        key={1}
+        label="Home"
+        onPress={() => onPress({ id: "1", name: "Home" })}
+      />
+      {data?.data.groups.map((group) => {
+        const { id, name } = group;
+
         return (
-          <DrawerItem
-            key={id}
-            label={name}
-            onPress={() =>
-              navigation.navigate("Home", {
-                state: {
-                  routes: [
-                    {
-                      name: "Home",
-                      params: {
-                        title: name,
-                      },
-                      state: {
-                        routes: [
-                          {
-                            name: "Home",
-                            params: {
-                              group: `${id}`,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  ],
-                },
-              })
-            }
-          />
+          <DrawerItem key={id} label={name} onPress={() => onPress(group)} />
         );
       })}
     </DrawerContentScrollView>

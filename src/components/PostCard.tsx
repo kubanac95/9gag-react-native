@@ -10,11 +10,12 @@ import {
 
 import dayjs from "dayjs";
 
-import { Text, TouchableRipple, IconButton } from "react-native-paper";
+import { TouchableRipple, IconButton } from "react-native-paper";
 import { useNavigation, useTheme } from "@react-navigation/native";
 
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
+import Text from "./Text";
 import PostMedia from "./PostMedia";
 
 interface PostCardProps {
@@ -70,7 +71,9 @@ const PostCard = React.forwardRef<unknown, PostCardProps>((props) => {
           <IconButton icon="dots-horizontal" color="#808080" size={16} />
         </View>
       </View>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title} parseEntities>
+        {title}
+      </Text>
 
       <PostMedia post={post} />
 
@@ -150,7 +153,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    fontSize: 16,
+    fontSize: 15,
     color: "#fff",
     fontWeight: "bold",
     marginHorizontal: 14,

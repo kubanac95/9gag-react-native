@@ -7,9 +7,14 @@ import {
   useNavigation,
   useRoute,
 } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
+import {
+  CardStyleInterpolators,
+  createStackNavigator,
+  TransitionPresets,
+} from "@react-navigation/stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 
+import { AppStateProvider } from "./context/AppState";
 import { QueryClientProvider } from "./context/QueryClient";
 import { HomeStackScreenNavigationProp } from "./context/Navigation";
 
@@ -82,10 +87,30 @@ const RootStackNavigator = () => {
         component={HomeDrawerNavigator}
         options={{ headerShown: false }}
       />
+
       <Stack.Screen
         name="Post"
         component={Pages.Post}
-        options={{ headerShown: false }}
+        options={{
+          ...Pages.Post.navigationOptions,
+          cardStyleInterpolator: CardStyleInterpolators.forNoAnimation,
+        }}
+      />
+      <Stack.Screen
+        name="Thread"
+        component={Pages.Thread}
+        options={{
+          headerShown: false,
+          ...TransitionPresets.RevealFromBottomAndroid,
+        }}
+      />
+      <Stack.Screen
+        name="Authenticate"
+        component={Pages.Authenticate}
+        options={{
+          headerShown: false,
+          ...TransitionPresets.RevealFromBottomAndroid,
+        }}
       />
     </Stack.Navigator>
   );
@@ -96,7 +121,9 @@ const Root = () => {
     <QueryClientProvider>
       <PaperProvider theme={DarkTheme}>
         <NavigationContainer theme={DarkTheme}>
-          <RootStackNavigator />
+          <AppStateProvider>
+            <RootStackNavigator />
+          </AppStateProvider>
         </NavigationContainer>
       </PaperProvider>
     </QueryClientProvider>
