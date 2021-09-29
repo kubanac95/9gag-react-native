@@ -2,7 +2,13 @@ type RootStackParamList = {
   Home:
     | import("@react-navigation/native").NavigatorScreenParams<DrawerParamList>
     | undefined;
-  Post: { url: string };
+  Post: {
+    url: string;
+  };
+  Thread: {
+    url: string;
+    commentId: string;
+  };
 };
 
 type DrawerParamList = {

@@ -8,7 +8,6 @@ import {
   useRoute,
 } from "@react-navigation/native";
 import {
-  CardStyleInterpolators,
   createStackNavigator,
   TransitionPresets,
 } from "@react-navigation/stack";
@@ -16,13 +15,16 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 
 import { AppStateProvider } from "./context/AppState";
 import { QueryClientProvider } from "./context/QueryClient";
-import { HomeStackScreenNavigationProp } from "./context/Navigation";
 
 import DrawerContent from "./components/DrawerContent";
 
 import { DarkTheme } from "./config/theme";
 
 import * as Pages from "./pages";
+import {
+  rootStackNavigationOptions,
+  CustomTransitionSpecs,
+} from "./containers/Navigation";
 
 LogBox.ignoreAllLogs(true);
 
@@ -30,7 +32,7 @@ const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
 const HomeStackNavigator = () => {
-  const { openDrawer } = useNavigation<HomeStackScreenNavigationProp>();
+  const { openDrawer } = useNavigation<HomeTabNavigationProp>();
 
   const { params } = useRoute<any>();
 
@@ -93,15 +95,19 @@ const RootStackNavigator = () => {
         component={Pages.Post}
         options={{
           ...Pages.Post.navigationOptions,
-          cardStyleInterpolator: CardStyleInterpolators.forNoAnimation,
+          ...rootStackNavigationOptions,
+          transitionSpec: {
+            open: CustomTransitionSpecs.TransitionSpecEmpty,
+            close: CustomTransitionSpecs.TransitionSpecSlide,
+          },
         }}
       />
       <Stack.Screen
         name="Thread"
         component={Pages.Thread}
         options={{
-          headerShown: false,
-          ...TransitionPresets.RevealFromBottomAndroid,
+          ...Pages.Thread.navigationOptions,
+          ...rootStackNavigationOptions,
         }}
       />
       <Stack.Screen

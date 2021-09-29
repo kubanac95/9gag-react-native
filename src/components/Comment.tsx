@@ -19,6 +19,7 @@ import Icon from "./Icon";
 import Link from "./Link";
 
 type CommentProps = {
+  url: string;
   style?: ViewProps["style"];
   comment: TComment;
 };
@@ -174,7 +175,12 @@ const Comment = (props: CommentProps) => {
               alignItems: "center",
               marginLeft: -6,
             }}
-            onPress={() => navigation.navigate("Thread")}
+            onPress={() =>
+              navigation.navigate("Thread", {
+                url: props.url,
+                commentId: comment.commentId,
+              })
+            }
           >
             <Icon name="menu-down" color={colors.accent} size={20} />
             <Text

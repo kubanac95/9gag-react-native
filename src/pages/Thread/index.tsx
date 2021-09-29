@@ -1,8 +1,53 @@
+import { RouteProp, useRoute } from "@react-navigation/core";
+import {
+  StackNavigationProp,
+  StackNavigationOptions,
+} from "@react-navigation/stack";
 import React from "react";
+import { View } from "react-native";
+import { IconButton } from "react-native-paper";
 
-// https://comment-cdn.9gag.com/v2/cacheable/comment-list.json?appId=a_dd8f2b7d304a10edaf6f29517ea0ca4100a43d1b&url=http%3A%2F%2F9gag.com%2Fgag%2Fa8EQgpO&count=10&commentId=c_162699187494484122&level=2
-const Thread = () => {
-  return <></>;
+import CommentsFlatList from "../../containers/Comments";
+
+export type NavigationProps = {
+  route: RouteProp<RootStackParamList, "Thread">;
+  navigation: StackNavigationProp<RootStackParamList, "Thread">;
 };
 
-export default Thread;
+const ThreadPage = () => {
+  const { params } = useRoute<NavigationProps["route"]>();
+
+  return (
+    <CommentsFlatList
+      params={{
+        level: 2,
+        count: 10,
+        url: params.url,
+        commentId: params.commentId,
+      }}
+    />
+  );
+};
+
+const HeaderRight = () => {
+  return (
+    <View style={{ flexDirection: "row" }}>
+      <IconButton
+        icon="bookmark-outline"
+        color="#808080"
+        onPress={console.log}
+      />
+      <IconButton icon="dots-vertical" color="#808080" onPress={console.log} />
+    </View>
+  );
+};
+
+const headerRight = () => <HeaderRight />;
+
+const navigationOptions: StackNavigationOptions = {
+  headerRight,
+};
+
+ThreadPage.navigationOptions = navigationOptions;
+
+export default ThreadPage;

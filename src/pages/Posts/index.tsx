@@ -13,10 +13,11 @@ import uniqBy from "lodash/uniqBy";
 import flatMap from "lodash/flatMap";
 
 import { useInfiniteQuery } from "react-query";
-import { useFocusEffect, useRoute } from "@react-navigation/native";
-import { ActivityIndicator, Chip } from "react-native-paper";
+import { useRoute } from "@react-navigation/native";
+import { ActivityIndicator } from "react-native-paper";
 
 import PostCard from "../../components/PostCard";
+import TagsList from "./Tags";
 
 import { api } from "../../lib/api";
 
@@ -72,13 +73,6 @@ const PostsScreen = () => {
     refetch,
   } = queryResult;
 
-  useFocusEffect(
-    React.useCallback(() => {
-      refetch();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []),
-  );
-
   const tags = queryData?.pages?.[0]?.group?.featuredTags;
 
   const data = useMemo(
@@ -102,41 +96,7 @@ const PostsScreen = () => {
       return null;
     }
 
-    return (
-      <FlatList
-        data={tags}
-        horizontal
-        style={{ backgroundColor: "#222222" }}
-        contentContainerStyle={{
-          paddingHorizontal: 12,
-          paddingVertical: 12,
-        }}
-        bounces={false}
-        overScrollMode="never"
-        directionalLockEnabled
-        showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <Chip
-            style={{
-              marginRight: 6,
-              borderRadius: 5,
-              backgroundColor: "#050505",
-            }}
-            textStyle={{
-              color: "#fff",
-              fontWeight: "700",
-              fontSize: 14,
-              marginVertical: 2,
-              marginHorizontal: 0,
-            }}
-            onPress={() => console.log("OK")}
-          >
-            {item.key}
-          </Chip>
-        )}
-        keyExtractor={({ key }) => key}
-      />
-    );
+    return <TagsList data={tags} />;
   }, [tags]);
 
   const renderListFooter = useCallback(() => {
