@@ -97,3 +97,26 @@ interface ICommentUserMedia extends ICommentBase {
 type TComment = ICommentText | ICommentUserMedia;
 
 type TCommentType = TComment["type"];
+
+interface ICommentParams {
+  url: string;
+  level: 1 | 2;
+  count?: number;
+  type?: "hot" | "new";
+  commentId?: string;
+}
+
+interface ICommentsResponse {
+  status: string;
+  error: string;
+  payload: {
+    url: string;
+    status: string;
+    lock: boolean;
+    total: number;
+    opUserId: string;
+    comments: TComment[];
+    prev: string | null;
+    next: string | null;
+  };
+}

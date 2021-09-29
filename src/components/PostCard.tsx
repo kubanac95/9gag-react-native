@@ -96,7 +96,7 @@ const PostCard = React.forwardRef<unknown, PostCardProps>((props) => {
         </TouchableRipple>
         <TouchableRipple
           style={styles.footerButton}
-          onPress={() => navigation.navigate("Post", { url: post.url })}
+          onPress={() => navigation.navigate("Post", { url: post.url, post })}
         >
           <View style={styles.footerButtonInner}>
             <Icon

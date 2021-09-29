@@ -4,6 +4,7 @@ type RootStackParamList = {
     | undefined;
   Post: {
     url: string;
+    post?: IPost;
   };
   Thread: {
     url: string;
